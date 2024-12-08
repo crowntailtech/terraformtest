@@ -19,7 +19,7 @@ pipeline {
                     def scannerHome = tool 'SonarQube Scanner' // Matches Jenkins Global Tool Configuration
                     withSonarQubeEnv('SonarQube Server') { // Matches Jenkins SonarQube Server configuration
                         sh """
-                            export JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64
+                            export JAVA_HOME=${env.JAVA_HOME ?: '/usr/lib/jvm/java-17-amazon-corretto.x86_64'}
                             export PATH=$JAVA_HOME/bin:$PATH
                             ${scannerHome}/bin/sonar-scanner \
                                 -Dsonar.projectKey=testapi28 \
@@ -31,6 +31,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Terraform Plan & Apply') {
             steps {
