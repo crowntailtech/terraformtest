@@ -19,7 +19,7 @@ pipeline {
                     def scannerHome = tool 'SonarQube Scanner'
                     withSonarQubeEnv('SonarQube Server') {
                         sh "${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=testapi \
+                            -Dsonar.projectKey=my-actual-project-key \
                             -Dsonar.sources=. \
                             -Dsonar.host.url=http://127.0.0.1:9000 \
                             -Dsonar.login=${SONAR_TOKEN}"
@@ -42,11 +42,14 @@ pipeline {
     }
 
     post {
+        always {
+            echo 'Pipeline execution completed.'
+        }
         success {
             echo 'Pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed. Check logs.'
+            echo 'Pipeline failed. Check logs for more details.'
         }
     }
 }
