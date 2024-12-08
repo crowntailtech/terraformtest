@@ -16,17 +16,22 @@ pipeline {
         stage('Code Analysis with SonarQube') {
             steps {
                 script {
-                    def scannerHome = tool 'SonarQube Scanner'
-                    withSonarQubeEnv('SonarQube Server') {
-                        sh "${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=testapi28 \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=http://3.80.133.83:9000 \
-                            -Dsonar.login=${SONAR_TOKEN}"
+                    def scannerHome = tool 'SonarQube Scanner' // Ensure this matches your Jenkins configuration
+                    withSonarQubeEnv('SonarQube Server') { // Ensure this matches your SonarQube server name
+                        sh """
+                            export PATH=$PATH:${scannerHome}/bin
+                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+                            ${scannerHome}/bin/sonar-scanner \
+                                -Dsonar.projectKey=testapi28 \
+                                -Dsonar.sources=. \
+                                -Dsonar.host.url=http://3.80.133.83:9000 \
+                                -Dsonar.login=${env.SONAR_TOKEN}
+                        """
                     }
                 }
             }
         }
+
 
         stage('Terraform Plan & Apply') {
             steps {
