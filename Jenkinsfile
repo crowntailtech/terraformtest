@@ -6,6 +6,7 @@ pipeline {
         AWS_CREDS = credentials('bc434e21-5423-4961-bf6a-40aff751bfa3')
     }
 
+
     stages {
         stage('Clone Repository') {
             steps {
