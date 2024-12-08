@@ -16,11 +16,11 @@ pipeline {
         stage('Code Analysis with SonarQube') {
             steps {
                 script {
-                    def scannerHome = tool 'SonarQube Scanner' // Ensure this matches your Jenkins configuration
-                    withSonarQubeEnv('SonarQube Server') { // Ensure this matches your SonarQube server name
+                    def scannerHome = tool 'SonarQube Scanner' // Matches Jenkins Global Tool Configuration
+                    withSonarQubeEnv('SonarQube Server') { // Matches Jenkins SonarQube Server configuration
                         sh """
-                            export PATH=$PATH:${scannerHome}/bin
-                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+                            export JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64
+                            export PATH=$JAVA_HOME/bin:$PATH
                             ${scannerHome}/bin/sonar-scanner \
                                 -Dsonar.projectKey=testapi28 \
                                 -Dsonar.sources=. \
@@ -31,7 +31,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Terraform Plan & Apply') {
             steps {
