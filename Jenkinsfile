@@ -1,32 +1,52 @@
 pipeline {
     agent any
+
     environment {
-        SONARQUBE_URL = 'http://127.0.0.1:9000'
-        SONARQUBE_TOKEN = credentials('sonarqube-token')
+        SONAR_TOKEN = credentials('2536478')
+        AWS_CREDS = credentials('bc434e21-5423-4961-bf6a-40aff751bfa3')
     }
+
     stages {
-        stage('Checkout') {
+        stage('Clone Repository') {
             steps {
-                git 'https://github.com/crowntailtech/terraformtest.git'
+                git branch: 'main', url: 'https://github.com/crowntailtech/terraformtest.git'
             }
         }
-        stage('Build') {
+
+        stage('Code Analysis with SonarQube') {
             steps {
-                echo 'Building...'
-            }
-        }
-        stage('Code Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh 'sonar-scanner -Dsonar.projectKey=my-api -Dsonar.sources=./ -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN'
+                script {
+                    def scannerHome = tool 'SonarQube Scanner'
+                    withSonarQubeEnv('SonarQube Server') {
+                        sh "${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=testapi \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=http://127.0.0.1:9000 \
+                            -Dsonar.login=${SONAR_TOKEN}"
+                    }
                 }
             }
         }
-        stage('Deploy') {
+
+        stage('Terraform Plan & Apply') {
             steps {
-                sh 'scp -i <key.pem> main.py ec2-user@54.145.164.100:/home/ec2-user/'
-                sh 'ssh -i <key.pem> ec2-user@54.145.164.100 "uvicorn main:app --host 0.0.0.0 --port 8000 &"'
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: AWS_CREDS]]) {
+                    sh '''
+                        terraform init
+                        terraform plan
+                        terraform apply -auto-approve
+                    '''
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check logs.'
         }
     }
 }
